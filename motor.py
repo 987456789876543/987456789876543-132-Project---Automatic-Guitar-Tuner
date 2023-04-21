@@ -1,7 +1,6 @@
-DIRECTION = "CW"
-
 import RPi.GPIO as gpio
 from time import sleep
+from gui import *
 
 enable = 6
 in1 = 16
@@ -16,8 +15,8 @@ gpio.setup(in2, gpio.OUT)
 modulate = gpio.PWM(enable, 100)
 modulate.start(0)
 
-def Above(dutyCycle, direction):
-    if DIRECTION == "CW":
+def start(dutyCycle, direction):
+    if clockwise:
         modulate.ChangeDutyCycle(dutyCycle)
         gpio.output(enable, True)
         gpio.output(in1, direction)
@@ -29,19 +28,6 @@ def Above(dutyCycle, direction):
         gpio.output(in1, not direction)
         gpio.output(in2, direction)
 
-
-def Below(dutyCycle, direction):
-    if DIRECTION == "CW":
-        modulate.ChangeDutyCycle(dutyCycle)
-        gpio.output(enable, True)
-        gpio.output(in1, not direction)
-        gpio.output(in2, direction)
-
-    else:
-        modulate.ChangeDutyCycle(dutyCycle)
-        gpio.output(enable, True)
-        gpio.output(in1, direction)
-        gpio.output(in2, not direction)
 
 def Stop():
     gpio.output(enable, False)
