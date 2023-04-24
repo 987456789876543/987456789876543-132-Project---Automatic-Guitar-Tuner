@@ -4,6 +4,10 @@ import numpy as np
 import scipy.fftpack
 import sounddevice as sd
 import time
+import motor
+import gui
+
+# NEED TO IMPORT THIS TO GUI AND HAVE A GLOBAL VARIABLE CALLED NOTE THAT IS CHANGED TO WHAT PITCH WE ARE LOOKING FOR DEPENDING ON WHAT BUTTON WE PRESS
 
 # General settings that can be changed by the user
 SAMPLE_FREQ = 48000 # sample frequency in Hz
@@ -19,26 +23,11 @@ SAMPLE_T_LENGTH = 1 / SAMPLE_FREQ # length between two samples in seconds
 DELTA_FREQ = SAMPLE_FREQ / WINDOW_SIZE # frequency step width of the interpolated DFT
 OCTAVE_BANDS = [50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600]
 
-ALL_NOTES = ["A","A#","B","C","C#","D","D#","E","F","F#","G","G#"]
-def find_closest_note(pitch):
-  """
-  This function finds the closest note for a given pitch
-  Parameters:
-    pitch (float): pitch given in hertz
-  Returns:
-    closest_note (str): e.g. a, g#, ..
-    closest_pitch (float): pitch of the closest note in hertz
-  """
-  i = int(np.round(np.log2(pitch/CONCERT_PITCH)*12))
-  closest_note = ALL_NOTES[i%12] + str(4 + (i + 9) // 12)
-  closest_pitch = CONCERT_PITCH*2**(i/12)
-  return closest_note, closest_pitch
 
 HANN_WINDOW = np.hanning(WINDOW_SIZE)
 def callback(indata, frames, time, status):
   """
   Callback function of the InputStream method.
-  That's where the magic happens ;)
   """
   # define static variables
   if not hasattr(callback, "window_samples"):
@@ -57,7 +46,8 @@ def callback(indata, frames, time, status):
     signal_power = (np.linalg.norm(callback.window_samples, ord=2)**2) / len(callback.window_samples)
     if signal_power < POWER_THRESH:
       os.system('cls' if os.name=='nt' else 'clear')
-      print("Closest note: ...")
+      #print("Frequency: ...")
+      motor.stop()
       return
 
     # avoid spectral leakage by multiplying the signal with a hann window
@@ -96,28 +86,35 @@ def callback(indata, frames, time, status):
     max_ind = np.argmax(hps_spec)
     max_freq = max_ind * (SAMPLE_FREQ/WINDOW_SIZE) / NUM_HPS
 
-    closest_note, closest_pitch = find_closest_note(max_freq)
     max_freq = round(max_freq, 1)
-    closest_pitch = round(closest_pitch, 1)
 
-    callback.noteBuffer.insert(0, closest_note) # note that this is a ringbuffer
+    callback.noteBuffer.insert(0, max_freq) # note that this is a ringbuffer
     callback.noteBuffer.pop()
 
     os.system('cls' if os.name=='nt' else 'clear')
     if callback.noteBuffer.count(callback.noteBuffer[0]) == len(callback.noteBuffer):
-      print(f"Frequency: {max_freq}")
+      #print(f"Frequency: {max_freq}")
+
+      #### MOTOR FUNCTION ####
+      if max_freq > (gui.NOTE + 1):
+        motor.start(50, True)
+      elif max_freq < (gui.NOTE - 1):
+        motor.start(50, False)
+      else:
+        motor.stop()
       
     else:
-      print(f"Frequency: ...")
-    
+      #print(f"Frequency: ...")
+
+      motor.stop()
 
   else:
     print('no input')
 
-try:
-  print("Starting HPS guitar tuner...")
-  with sd.InputStream(channels=1, callback=callback, blocksize=WINDOW_STEP, samplerate=SAMPLE_FREQ):
-    while True:
-      time.sleep(0.5)
-except Exception as exc:
-  print(str(exc))
+#try:
+#  print("Starting HPS guitar tuner...")
+#  with sd.InputStream(channels=1, callback=callback, blocksize=WINDOW_STEP, samplerate=SAMPLE_FREQ):
+#    while True:
+#      time.sleep(0.5)
+#except Exception as exc:
+#  print(str(exc))

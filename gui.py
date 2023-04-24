@@ -1,0 +1,56 @@
+import getFrequency
+from tkinter import *
+import time
+
+
+
+# function to start code in getFrequency
+def tune(val):
+    notes = [82, 110, 147, 196, 247, 330]
+    global NOTE 
+    NOTE = notes[val]
+    try:
+        with getFrequency.sd.InputStream(channels=1, callback=getFrequency.callback, blocksize=getFrequency.WINDOW_STEP, samplerate=getFrequency.SAMPLE_FREQ):
+            while True:
+                time.sleep(0.5)
+    except Exception as exc:
+        print(str(exc))
+
+
+
+
+window = Tk()
+
+#buttons for each note
+e1 = Button(text="E2", width=20, command=lambda: tune(0))
+e1.grid(row=0,column=0,sticky=N+S+E+W)
+
+a1 = Button(text="A2", width=20, command=lambda: tune(1))
+a1.grid(row=0,column=1,sticky=N+S+E+W)
+
+d1 = Button(text="D3", width=20, command=lambda: tune(2))
+d1.grid(row=0,column=2,sticky=N+S+E+W)
+
+g1 = Button(text="G3", width=20, command=lambda: tune(3))
+g1.grid(row=1,column=0,sticky=N+S+E+W)
+
+b1 = Button(text="B3", width=20, command=lambda: tune(4))
+b1.grid(row=1,column=1,sticky=N+S+E+W)
+
+e2 = Button(text="E4", width=20, command=lambda: tune(5))
+e2.grid(row=1,column=2,sticky=N+S+E+W)
+
+#label asking whick direction the tuning key needs to turn to toghten the string
+c = Label(text="Turn Clockwise or Counterclockwise to tighten?")
+c.grid(row=3,columnspan=2,sticky=N+S+E+W, pady=15)
+
+#make boxes for clockwise and counter clockwise, set the other box to be 0 so both
+#are never checked at the same time
+clockwise = IntVar()
+Checkbutton(text="Clockwise",variable=clockwise, command=lambda: counterClockwise.set(0)).grid(row=4,column=0)
+
+counterClockwise = IntVar()
+Checkbutton(text="Counterclockwise",variable=counterClockwise, command=lambda: clockwise.set(0)).grid(row=4,column=1)
+
+
+window.mainloop()
