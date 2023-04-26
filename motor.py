@@ -1,10 +1,10 @@
+from asyncore import read
 import RPi.GPIO as gpio
-from time import sleep
 from gui import *
 
-enable = 6
-in1 = 16
-in2 = 17
+enable = 22
+in1 = 17
+in2 = 18
 
 gpio.setmode(gpio.BCM)
 
@@ -12,7 +12,7 @@ gpio.setup(enable, gpio.OUT)
 gpio.setup(in1, gpio.OUT)
 gpio.setup(in2, gpio.OUT)
 
-modulate = gpio.PWM(enable, 100)
+modulate = gpio.PWM(enable, 50)
 modulate.start(0)
 
 def start(dutyCycle, direction):
@@ -31,3 +31,4 @@ def start(dutyCycle, direction):
 
 def Stop():
     gpio.output(enable, False)
+    modulate.stop()
